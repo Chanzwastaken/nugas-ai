@@ -1,5 +1,6 @@
 # Nugas.AI
 https://nugas-ai.vercel.app/
+
 **Biar AI yang bantuin tugas kamu.**
 
 Nugas.AI is an AI-powered study assistant that helps students understand and study their academic documents. Upload a PDF, and get instant summaries, keywords, concept explanations, quizzes, and the ability to chat with your document.
