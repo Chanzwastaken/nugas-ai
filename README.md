@@ -1,4 +1,7 @@
-# Nugas.AI
+# <img width="30" height="30" alt="ChatGPT Image Nov 23, 2025, 06_17_08 PM (3)" src="https://github.com/user-attachments/assets/32dfbf96-34ed-4b45-9876-9062ca6a1c33" /> Nugas.AI
+
+
+<img width="1011" height="704" alt="nugas-ai" src="https://github.com/user-attachments/assets/a8a82bc6-169a-416c-bd6e-8aee50e8725c" />
 https://nugas-ai.vercel.app/
 
 **Biar AI yang bantuin tugas kamu.**
@@ -19,6 +22,7 @@ Nugas.AI is an AI-powered study assistant that helps students understand and stu
 - **Styling**: TailwindCSS
 - **PDF Processing**: pdf-parse
 - **AI**: OpenRouter API (Google Gemini 2.0 Flash)
+
 - **Language**: TypeScript
 
 ## Architecture
