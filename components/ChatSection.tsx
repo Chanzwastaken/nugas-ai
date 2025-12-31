@@ -49,24 +49,40 @@ export default function ChatSection({ documentText }: ChatSectionProps) {
         }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error('Failed to start chat stream');
+      }
 
-      if (data.success) {
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader available');
+
+      let currentAnswer = '';
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        // Decode the chunk
+        const text = decoder.decode(value, { stream: true });
+        currentAnswer += text;
+
+        // Update the message in real-time
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === userMessage.id
-              ? { ...msg, answer: data.answer }
+              ? { ...msg, answer: currentAnswer }
               : msg
           )
         );
-      } else {
-        throw new Error(data.error || 'Failed to get answer');
       }
+
     } catch (error: any) {
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === userMessage.id
-            ? { ...msg, answer: `Error: ${error.message}` }
+            ? { ...msg, answer: msg.answer + `\n\n**Error:** ${error.message}` }
             : msg
         )
       );
@@ -78,7 +94,7 @@ export default function ChatSection({ documentText }: ChatSectionProps) {
   return (
     <div className="card">
       <h2 className="text-2xl font-bold text-gray-dark mb-6">Chat with Document</h2>
-      
+
       <div className="flex flex-col h-[500px]">
         <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2">
           {messages.length === 0 ? (

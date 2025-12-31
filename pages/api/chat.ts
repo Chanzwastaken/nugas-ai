@@ -1,43 +1,60 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { callOpenRouter } from '@/lib/openrouter';
+import type { NextRequest } from 'next/server';
+import { streamOpenRouter } from '@/lib/openrouter';
 import { PROMPTS } from '@/lib/ai-prompts';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   try {
-    const { text, question } = req.body;
+    const { text, question } = await req.json();
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      return res.status(400).json({ error: 'Document text is required' });
+      return new Response(JSON.stringify({ error: 'Document text is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     if (!question || typeof question !== 'string' || question.trim().length === 0) {
-      return res.status(400).json({ error: 'Question is required' });
+      return new Response(JSON.stringify({ error: 'Question is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Truncate text if too long
     const maxLength = 50000;
-    const truncatedText = text.length > maxLength 
+    const truncatedText = text.length > maxLength
       ? text.substring(0, maxLength) + '... [text truncated]'
       : text;
 
-    // Generate answer using chat prompt
-    const answer = await callOpenRouter(PROMPTS.chat(truncatedText, question));
+    // Generate answer using chat prompt with streaming
+    const stream = await streamOpenRouter(PROMPTS.chat(truncatedText, question));
 
-    return res.status(200).json({
-      success: true,
-      answer,
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+      },
     });
+
   } catch (error: any) {
     console.error('Chat error:', error);
-    return res.status(500).json({
+    return new Response(JSON.stringify({
       error: error.message || 'Failed to generate answer',
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }
