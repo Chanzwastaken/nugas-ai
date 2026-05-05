@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -11,12 +11,152 @@ import {
   FiUpload,
   FiMenu,
   FiX,
+  FiCheck,
 } from 'react-icons/fi';
 import { useDashboard } from '@/contexts/DashboardContext';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   currentPage?: string;
+}
+
+const ANALYSIS_STEPS = [
+  { label: 'Reading document content', icon: '📄', duration: 2000 },
+  { label: 'Generating summary', icon: '✍️', duration: 7000 },
+  { label: 'Extracting keywords', icon: '🔑', duration: 7000 },
+  { label: 'Identifying key concepts', icon: '💡', duration: 7000 },
+  { label: 'Creating quiz questions', icon: '🧩', duration: 7000 },
+];
+
+function AnalyzingLoader() {
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  useEffect(() => {
+    // Smoothly animate progress bar up to 92% over ~25 seconds
+    const totalDuration = 25000;
+    const targetProgress = 92;
+    const interval = 80;
+    const increment = (targetProgress / totalDuration) * interval;
+
+    const progressTimer = setInterval(() => {
+      setProgress((prev) => {
+        const next = prev + increment;
+        return next >= targetProgress ? targetProgress : next;
+      });
+    }, interval);
+
+    // Advance through steps based on cumulative durations
+    let elapsed = 0;
+    const stepTimers: ReturnType<typeof setTimeout>[] = [];
+
+    ANALYSIS_STEPS.forEach((step, index) => {
+      elapsed += step.duration;
+      const timer = setTimeout(() => {
+        setCompletedSteps((prev) => [...prev, index]);
+        setCurrentStep((prev) => Math.min(prev + 1, ANALYSIS_STEPS.length - 1));
+      }, elapsed);
+      stepTimers.push(timer);
+    });
+
+    return () => {
+      clearInterval(progressTimer);
+      stepTimers.forEach(clearTimeout);
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="relative inline-flex items-center justify-center w-20 h-20 mb-4">
+            <div className="absolute inset-0 rounded-full border-4 border-blue-100"></div>
+            <div
+              className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"
+              style={{ borderTopColor: 'var(--color-primary, #3b82f6)' }}
+            ></div>
+            <span className="text-3xl">🧠</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800">Analyzing your document</h2>
+          <p className="text-sm text-gray-500 mt-1">This may take up to 30 seconds</p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs font-medium text-gray-500">Progress</span>
+            <span className="text-xs font-bold text-primary">{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-300 ease-out"
+              style={{
+                width: `${progress}%`,
+                background: 'linear-gradient(90deg, #3b82f6, #6366f1)',
+                boxShadow: '0 0 8px rgba(99, 102, 241, 0.5)',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div className="space-y-3">
+          {ANALYSIS_STEPS.map((step, index) => {
+            const isCompleted = completedSteps.includes(index);
+            const isActive = index === currentStep && !isCompleted;
+            return (
+              <div
+                key={index}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-500 ${
+                  isCompleted
+                    ? 'bg-green-50 opacity-100'
+                    : isActive
+                    ? 'bg-blue-50 opacity-100'
+                    : 'opacity-40'
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs transition-all duration-300 ${
+                    isCompleted
+                      ? 'bg-green-500 text-white'
+                      : isActive
+                      ? 'bg-blue-500 text-white animate-pulse'
+                      : 'bg-gray-200 text-gray-400'
+                  }`}
+                >
+                  {isCompleted ? <FiCheck size={14} /> : <span>{step.icon}</span>}
+                </div>
+                <span
+                  className={`text-sm font-medium transition-colors duration-300 ${
+                    isCompleted
+                      ? 'text-green-700'
+                      : isActive
+                      ? 'text-blue-700'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  {step.label}
+                </span>
+                {isActive && (
+                  <span className="ml-auto flex space-x-1">
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"
+                        style={{ animationDelay: `${i * 0.15}s` }}
+                      />
+                    ))}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function DashboardLayout({ children, currentPage = 'summary' }: DashboardLayoutProps) {
@@ -42,15 +182,7 @@ export default function DashboardLayout({ children, currentPage = 'summary' }: D
   ];
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-light flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Analyzing your document...</p>
-          <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
-        </div>
-      </div>
-    );
+    return <AnalyzingLoader />;
   }
 
   return (
@@ -172,4 +304,3 @@ export default function DashboardLayout({ children, currentPage = 'summary' }: D
     </div>
   );
 }
-
