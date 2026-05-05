@@ -52,10 +52,10 @@ export default function FileUpload({ onFileSelect, isProcessing }: FileUploadPro
       return;
     }
 
-    // Validate file size (20 MB)
-    const maxSize = 20 * 1024 * 1024;
+    // Validate file size (10 MB)
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('File size must be less than 20 MB.');
+      alert('File size must be less than 10 MB.');
       return;
     }
 
@@ -109,7 +109,7 @@ export default function FileUpload({ onFileSelect, isProcessing }: FileUploadPro
               {selectedFile ? selectedFile.name : 'Drag and drop your PDF here'}
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              or click to browse (Max 20 MB)
+              or click to browse (Max 10 MB)
             </p>
           </div>
           {selectedFile && (

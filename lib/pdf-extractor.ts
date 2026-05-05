@@ -33,10 +33,10 @@ export function validatePDFFile(file: File): { valid: boolean; error?: string } 
     return { valid: false, error: 'File must be a PDF' };
   }
 
-  // Check file size (20 MB max)
-  const maxSize = 20 * 1024 * 1024; // 20 MB in bytes
+  // Check file size (10 MB max)
+  const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
   if (file.size > maxSize) {
-    return { valid: false, error: 'File size must be less than 20 MB' };
+    return { valid: false, error: 'File size must be less than 10 MB' };
   }
 
   if (file.size === 0) {
@@ -48,10 +48,10 @@ export function validatePDFFile(file: File): { valid: boolean; error?: string } 
 
 // Server-side validation (Node.js Buffer)
 export function validatePDFBuffer(buffer: Buffer, filename?: string): { valid: boolean; error?: string } {
-  // Check file size (20 MB max)
-  const maxSize = 20 * 1024 * 1024; // 20 MB in bytes
+  // Check file size (10 MB max)
+  const maxSize = 10 * 1024 * 1024; // 10 MB in bytes
   if (buffer.length > maxSize) {
-    return { valid: false, error: 'File size must be less than 20 MB' };
+    return { valid: false, error: 'File size must be less than 10 MB' };
   }
 
   if (buffer.length === 0) {

@@ -58,15 +58,40 @@ export default function ChatSection({ documentText }: ChatSectionProps) {
 
       let currentAnswer = '';
       const decoder = new TextDecoder();
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) break;
 
-        // Decode the chunk
-        const text = decoder.decode(value, { stream: true });
-        currentAnswer += text;
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Split by double newline which separates SSE events, or single newline
+        const lines = buffer.split('\n');
+        
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.startsWith('data: ') && trimmedLine !== 'data: [DONE]') {
+            try {
+              const data = JSON.parse(trimmedLine.slice(6));
+              const delta = data.choices?.[0]?.delta;
+              if (delta) {
+                const content = delta.content || '';
+                const reasoning = delta.reasoning || '';
+                if (content || reasoning) {
+                  currentAnswer += (content || reasoning);
+                }
+              }
+            } catch (e) {
+              // Ignore incomplete JSON chunks
+            }
+          }
+        }
 
         // Update the message in real-time
         setMessages((prev) =>

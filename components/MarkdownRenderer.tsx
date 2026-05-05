@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface MarkdownRendererProps {
   content: string;
@@ -10,6 +11,7 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
   return (
     <div className={`prose prose-sm max-w-none ${className}`}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ node, ...props }) => (
             <h1 className="text-2xl font-bold text-gray-dark mt-6 mb-4" {...props} />
@@ -62,6 +64,26 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
           },
           a: ({ node, ...props }) => (
             <a className="text-primary hover:underline" {...props} />
+          ),
+          table: ({ node, ...props }) => (
+            <div className="overflow-x-auto my-4">
+              <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg" {...props} />
+            </div>
+          ),
+          thead: ({ node, ...props }) => (
+            <thead className="bg-gray-50" {...props} />
+          ),
+          tbody: ({ node, ...props }) => (
+            <tbody className="divide-y divide-gray-200 bg-white" {...props} />
+          ),
+          tr: ({ node, ...props }) => (
+            <tr className="hover:bg-gray-50 transition-colors" {...props} />
+          ),
+          th: ({ node, ...props }) => (
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200" {...props} />
+          ),
+          td: ({ node, ...props }) => (
+            <td className="px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap break-words border-b border-gray-100" {...props} />
           ),
         }}
       >
